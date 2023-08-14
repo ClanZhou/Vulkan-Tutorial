@@ -3,8 +3,8 @@
 #include <cstdlib>
 #include <vector>
 
-#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include <volk.h>
 
 constexpr uint32_t WIDTH  = 800;
 constexpr uint32_t HEIGHT = 600;
@@ -95,6 +95,7 @@ private:
     
     void initVulkan()
     {
+        volkInitialize();
         createInstance();
     }
     
@@ -164,6 +165,7 @@ private:
         {
             throw std::runtime_error("failed to create instance!");
         }
+        volkLoadInstance(instance);
     }
     
 private:

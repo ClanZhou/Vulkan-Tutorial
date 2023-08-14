@@ -12,6 +12,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/glm)
 
 # volk
 set(VOLK_STATIC_DEFINES VK_USE_PLATFORM_WIN32_KHR)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/volk)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/volk)
 
 add_executable(vulkan_tutorial main.cpp)

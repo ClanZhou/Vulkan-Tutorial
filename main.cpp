@@ -1,6 +1,4 @@
 #include <iostream>
-#include <stdexcept>
-#include <cstdlib>
 #include <vector>
 #include <optional>
 #include <unordered_set>
@@ -167,6 +165,7 @@ private:
         pickPhysicalDevice();
         createLogicalDevice();
         createSwapChain();
+        createImageViews();
     }
     
     void mainLoop()
@@ -179,6 +178,10 @@ private:
     
     void cleanup()
     {
+        for (auto& imageView : swapChainImageViews)
+        {
+            vkDestroyImageView(device, imageView, nullptr);
+        }
         vkDestroySwapchainKHR(device, swapChain, nullptr);
         vkDestroyDevice(device, nullptr);
         if (enableValidationLayers)
@@ -486,8 +489,11 @@ private:
         VkSurfaceFormatKHR format = chooseSwapSurfaceFormat(details.formats);
         VkPresentModeKHR presentMode = chooseSwapPresentMode(details.presentModes);
         VkExtent2D extent = chooseSwapExtent(details.capabilities);
-        uint32_t imageCount = details.capabilities.maxImageCount == 0 ? 4 : details.capabilities.maxImageCount;
-        std::cout<<"The image count of swapchain is: "<<details.capabilities.minImageCount<<'\n';
+        uint32_t imageCount = details.capabilities.minImageCount + 1;
+        if (details.capabilities.maxImageCount != 0)
+        {
+            imageCount = min(imageCount, details.capabilities.maxImageCount);
+        }
 
         VkSwapchainCreateInfoKHR createInfo;
         createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -524,6 +530,39 @@ private:
         {
             throw std::runtime_error("failed to create swap chain!");
         }
+
+        vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
+        swapChainImages.resize(imageCount);
+        vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChainImages.data());
+        swapChainImageFormat = format.format;
+        swapChainImageExtent = extent;
+    }
+
+    void createImageViews()
+    {
+        swapChainImageViews.resize(swapChainImages.size());
+        for (uint32_t i = 0, size = static_cast<uint32_t>(swapChainImages.size()); i < size; ++i)
+        {
+            VkImageViewCreateInfo createInfo;
+            createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            createInfo.image = swapChainImages[i];
+            createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;        // TODO: what are the differences between each viewType
+            createInfo.format = swapChainImageFormat;
+            createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            createInfo.subresourceRange.baseMipLevel = 0;
+            createInfo.subresourceRange.levelCount = 1;
+            createInfo.subresourceRange.baseArrayLayer = 0;
+            createInfo.subresourceRange.layerCount = 1;
+
+            if (vkCreateImageView(device, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS)
+            {
+                throw std::runtime_error("failed to create image views!");
+            }
+        }
     }
     
 private:
@@ -538,6 +577,10 @@ private:
     VkQueue graphicsQueue;
     VkQueue presentQueue;
     VkSwapchainKHR swapChain;
+    std::vector<VkImage> swapChainImages;
+    VkFormat swapChainImageFormat;
+    VkExtent2D swapChainImageExtent;
+    std::vector<VkImageView> swapChainImageViews;
 };
 
 int main()

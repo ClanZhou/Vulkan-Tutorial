@@ -7,6 +7,7 @@
 #include <array>
 
 #define VK_NO_PROTOTYPES
+#define VOLK_IMPLEMENTATION
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <volk.h>
@@ -38,16 +39,16 @@ bool checkValidationLayerSupport()
     std::vector<VkLayerProperties> supportedLayers(supportedValidationLayerCount);
     vkEnumerateInstanceLayerProperties(&supportedValidationLayerCount, supportedLayers.data());
 
-    // std::cout << "supported Layers: \n";
-    // for (const auto& layer : supportedLayers)
-    // {
-    //     std::cout << "\t" << layer.layerName << '\n';
-    // }
-    // std::cout << "required Layers: \n";
-    // for (const char* layer : requiredValidationLayers)
-    // {
-    //     std::cout << "\t" << layer << '\n';
-    // }
+     std::cout << "supported Layers: \n";
+     for (const auto& layer : supportedLayers)
+     {
+         std::cout << "\t" << layer.layerName << '\n';
+     }
+     std::cout << "required Layers: \n";
+     for (const char* layer : requiredValidationLayers)
+     {
+         std::cout << "\t" << layer << '\n';
+     }
 
     for (const char* layer : requiredValidationLayers)
     {
